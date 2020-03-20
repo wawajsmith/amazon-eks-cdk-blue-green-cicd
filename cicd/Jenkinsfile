@@ -18,7 +18,6 @@ pipeline {
       steps {
 
         withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'e4e458ba-8178-4cc7-af47-cbd9046e76ce', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-
           sh label: '', script: '''echo "==================="
           echo "Pre-Build Stage"
           echo "==================="
@@ -49,38 +48,44 @@ pipeline {
     }
     stage ('Build Stage') {
       steps {
-        sh label: '', script: '''echo "==================="
-        echo "Build Stage"
-        echo "==================="
 
-        pwd
-        ls -al
-        cd amazon-eks-cicd-codebuild-eks-alb-bg/flask-docker-app
-        aws configure set region ${AWS_REGION}
-        $(aws ecr get-login --no-include-email)
-        docker build -t $ECR_REPO_URI:$TAG .
-        docker push $ECR_REPO_URI:$TAG
-        '''
+        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'e4e458ba-8178-4cc7-af47-cbd9046e76ce', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+          sh label: '', script: '''echo "==================="
+          echo "Build Stage"
+          echo "==================="
+
+          pwd
+          ls -al
+          cd amazon-eks-cicd-codebuild-eks-alb-bg/flask-docker-app
+          aws configure set region ${AWS_REGION}
+          $(aws ecr get-login --no-include-email)
+          docker build -t $ECR_REPO_URI:$TAG .
+          docker push $ECR_REPO_URI:$TAG
+          '''
+        }
       }
     }
     stage ('Post-Build Stage') {
       steps {
-        sh label: '', script: '''echo "==================="
-        echo "Post-Build Stage"
-        echo "==================="
 
-        kubectl get nodes -n flask-alb
-        kubectl get deploy -n flask-alb
-        kubectl get svc -n flask-alb
-        isDeployed=$(kubectl get deploy -n flask-alb -o json | jq \'.items[0]\')
-        deploy8080=$(kubectl get svc -n flask-alb -o wide | grep 8080: | tr \' \' \'\\n\' | grep app= | sed \'s/app=//g\')
-        echo $isDeployed $deploy8080
+        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'e4e458ba-8178-4cc7-af47-cbd9046e76ce', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+          sh label: '', script: '''echo "==================="
+          echo "Post-Build Stage"
+          echo "==================="
 
-        if [[ \\"$isDeployed\\" == \\"null\\" ]]; then kubectl apply -f k8s/flaskALBBlue.yaml && kubectl apply -f k8s/flaskALBGreen.yaml; else kubectl set image deployment/$deploy8080 -n flask-alb flask=$ECR_REPO_URI:$TAG; fi
+          kubectl get nodes -n flask-alb
+          kubectl get deploy -n flask-alb
+          kubectl get svc -n flask-alb
+          isDeployed=$(kubectl get deploy -n flask-alb -o json | jq \'.items[0]\')
+          deploy8080=$(kubectl get svc -n flask-alb -o wide | grep 8080: | tr \' \' \'\\n\' | grep app= | sed \'s/app=//g\')
+          echo $isDeployed $deploy8080
 
-        kubectl get deploy -n flask-alb
-        kubectl get svc -n flask-alb
-        '''
+          if [[ \\"$isDeployed\\" == \\"null\\" ]]; then kubectl apply -f k8s/flaskALBBlue.yaml && kubectl apply -f k8s/flaskALBGreen.yaml; else kubectl set image deployment/$deploy8080 -n flask-alb flask=$ECR_REPO_URI:$TAG; fi
+
+          kubectl get deploy -n flask-alb
+          kubectl get svc -n flask-alb
+          '''
+        }
       }
     }
 
