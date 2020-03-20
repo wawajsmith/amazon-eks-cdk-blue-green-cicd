@@ -3,8 +3,8 @@ pipeline {
     label 'build-slave1'
   }
   environment {
-    AWS_ACCESS_KEY_ID     = withCredentials([string(credentialsId: 'My-Info2', variable: 'Access Key ID')])
-    AWS_SECRET_ACCESS_KEY = withCredentials([string(credentialsId: 'My-Info2', variable: 'Secret Access Key')])
+    AWS_ACCESS_KEY_ID     = withCredentials([string(credentialsId: 'My-Info3', variable: 'Username')])
+    AWS_SECRET_ACCESS_KEY = withCredentials([string(credentialsId: 'My-Info3', variable: 'Password')])
   }
   stages {
     stage ('Pre-Build Stage') {
