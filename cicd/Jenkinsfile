@@ -18,36 +18,33 @@ pipeline {
       steps {
 
         withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'e4e458ba-8178-4cc7-af47-cbd9046e76ce', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-              sh "echo this is ${env.AWS_ACCESS_KEY_ID}"
-              sh "echo this is ${env.AWS_SECRET_ACCESS_KEY}"
-              sh "aws s3 ls"
+
+          sh label: '', script: '''echo "==================="
+          echo "Pre-Build Stage"
+          echo "==================="
+          aws s3 ls
+          export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+          echo "The AWS Region is set to: ${JENKINS_AWS_REGION}"
+          aws configure set region ${JENKINS_AWS_REGION}
+          export AWS_REGION=$(aws configure get region)
+
+
+          kubectlcmd=$(aws cloudformation --region ${AWS_REGION} describe-stacks --stack-name CdkStackALBEksBg | jq \'.Stacks[].Outputs[1].OutputValue\' | tr -d \'"\')
+          eval $kubectlcmd
+          kubeClusterName=$(aws cloudformation --region ${AWS_REGION} describe-stacks --stack-name CdkStackALBEksBg | jq \'.Stacks[].Outputs[0].OutputValue\' | tr -d \'"\')
+          kubectl get nodes
+          ecrRepo=$(aws cloudformation --region ${AWS_REGION} describe-stack-resources --stack-name CdkStackALBEksBg | jq \'.StackResources[]|select(.ResourceType == "AWS::ECR::Repository").PhysicalResourceId\' | tr -d \'"\')
+          preEcrRepo="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/"
+          ECR_REPO_URI=$preEcrRepo$ecrRepo
+          echo $ECR_REPO_URI
+
+          export CLUSTER_NAME=$kubeClusterName
+          export ECR_REPO_URI=$ECR_REPO_URI
+
+          #CODEBUILD_RESOLVED_SOURCE_VERSION=$(git rev-parse HEAD)
+          CODEBUILD_RESOLVED_SOURCE_VERSION=01234abcdefgh
+          export TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}'''
         }
-
-        sh label: '', script: '''echo "==================="
-        echo "Pre-Build Stage"
-        echo "==================="
-        aws s3 ls
-        export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-        echo "The AWS Region is set to: ${JENKINS_AWS_REGION}"
-        aws configure set region ${JENKINS_AWS_REGION}
-        export AWS_REGION=$(aws configure get region)
-
-
-        kubectlcmd=$(aws cloudformation --region ${AWS_REGION} describe-stacks --stack-name CdkStackALBEksBg | jq \'.Stacks[].Outputs[1].OutputValue\' | tr -d \'"\')
-        eval $kubectlcmd
-        kubeClusterName=$(aws cloudformation --region ${AWS_REGION} describe-stacks --stack-name CdkStackALBEksBg | jq \'.Stacks[].Outputs[0].OutputValue\' | tr -d \'"\')
-        kubectl get nodes
-        ecrRepo=$(aws cloudformation --region ${AWS_REGION} describe-stack-resources --stack-name CdkStackALBEksBg | jq \'.StackResources[]|select(.ResourceType == "AWS::ECR::Repository").PhysicalResourceId\' | tr -d \'"\')
-        preEcrRepo="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/"
-        ECR_REPO_URI=$preEcrRepo$ecrRepo
-        echo $ECR_REPO_URI
-
-        export CLUSTER_NAME=$kubeClusterName
-        export ECR_REPO_URI=$ECR_REPO_URI
-
-        #CODEBUILD_RESOLVED_SOURCE_VERSION=$(git rev-parse HEAD)
-        CODEBUILD_RESOLVED_SOURCE_VERSION=01234abcdefgh
-        export TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}'''
       }
     }
     stage ('Build Stage') {
