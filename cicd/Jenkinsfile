@@ -19,9 +19,7 @@ pipeline {
         echo "Pre-Build Stage"
         echo "==================="
 
-        echo env.AWS_ACCESS_KEY_ID
-        echo withCredentials([string(credentialsId: 'My-Info3', variable: 'Username')])
-        echo
+        echo ${env.AWS_ACCESS_KEY_ID}
 
         export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
         echo "The AWS Region is set to: ${JENKINS_AWS_REGION}"
