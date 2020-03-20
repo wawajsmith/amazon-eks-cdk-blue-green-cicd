@@ -4,12 +4,13 @@ pipeline {
   }
   stages {
     stage('test') {
-      withEnv(["AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}",
-      "AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}",
-      "AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}"]) {
+      steps {
 
-      echo $AWS_ACCESS_KEY_ID
-      aws s3 ls
+        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'e4e458ba-8178-4cc7-af47-cbd9046e76ce', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+              sh "echo this is ${env.AWS_ACCESS_KEY_ID}"
+              sh "echo this is ${env.AWS_SECRET_ACCESS_KEY}"
+        }
+
       }
     }
     stage ('Pre-Build Stage') {
