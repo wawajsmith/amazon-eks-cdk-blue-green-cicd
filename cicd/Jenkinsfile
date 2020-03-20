@@ -82,5 +82,37 @@ pipeline {
       }
     }
 
+    stage('Approval for Swap of B/G') {
+      input "Deploy to Production?"
+    }
+
+    stage ('Swap Blue / Green Env Stage') {
+      steps {
+        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'e4e458ba-8178-4cc7-af47-cbd9046e76ce', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+          sh label: '', script: '''echo "==================="
+          echo "Post-Build Stage"
+          echo "==================="
+
+          echo "++++++++++++++++"
+          source ~/.vars
+          eval $kubectlcmd
+          aws configure set region ${AWS_REGION}
+          echo "++++++++++++++++"
+
+          kubectl get nodes -n flask-alb
+          kubectl get deploy -n flask-alb
+          kubectl get svc -n flask-alb
+          deploy8080=$(kubectl get svc -n flask-alb -o wide | grep ' 8080:' | tr ' ' '\n' | grep app= | sed 's/app=//g')
+          deploy80=$(kubectl get svc -n flask-alb -o wide | grep ' 80:' | tr ' ' '\n' | grep app= | sed 's/app=//g')
+          echo $deploy80 $deploy8080
+          kubectl patch svc flask-svc-alb-blue -n flask-alb -p '{\"spec\":{\"selector\": {\"app\": \"'$deploy8080'\"}}}'
+          kubectl patch svc flask-svc-alb-green -n flask-alb -p '{\"spec\":{\"selector\": {\"app\": \"'$deploy80'\"}}}'
+          kubectl get deploy -n flask-alb
+          kubectl get svc -n flask-alb
+          '''
+        }
+      }
+    }
+
   }
 }
