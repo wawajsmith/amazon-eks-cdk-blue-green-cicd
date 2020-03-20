@@ -82,15 +82,14 @@ pipeline {
       }
     }
 
-    stage('Approval for Swap of B/G') {
-      input "Deploy to Production?"
-    }
-
     stage ('Swap Blue / Green Env Stage') {
+      input {
+        message "Do you want to proceed for production deployment?"
+      }
       steps {
         withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'e4e458ba-8178-4cc7-af47-cbd9046e76ce', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
           sh label: '', script: '''echo "==================="
-          echo "Post-Build Stage"
+          echo "Swap Stage"
           echo "==================="
 
           echo "++++++++++++++++"
