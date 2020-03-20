@@ -82,7 +82,7 @@ pipeline {
       }
     }
 
-    stage ('Swap Blue / Green Env Stage') {
+    stage ('Approval & Swap Blue/Green Env Stage') {
       input {
         message "Do you want to proceed for production deployment?"
       }
