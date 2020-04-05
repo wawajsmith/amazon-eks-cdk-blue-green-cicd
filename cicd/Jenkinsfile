@@ -19,7 +19,7 @@ pipeline {
           kubeClusterName=$(aws cloudformation --region ${AWS_REGION} describe-stacks --stack-name CdkStackALBEksBg | jq \'.Stacks[].Outputs[0].OutputValue\' | tr -d \'"\')
           export CLUSTER_NAME=$kubeClusterName
           export ECR_REPO_URI=$ECR_REPO_URI
-          CODEBUILD_RESOLVED_SOURCE_VERSION=01234abcdefgh
+          CODEBUILD_RESOLVED_SOURCE_VERSION=01234abcdefghi
           export TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}
 
           set > ~/.vars
