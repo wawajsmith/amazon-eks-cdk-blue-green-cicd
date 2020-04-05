@@ -7,7 +7,7 @@ pip install flask
 ENV FLASK_APP app.py
 ENV PLATFORM 'Amazon EKS deployed via AWS CodePipeline / Jenkins'
 
-WOR:KDIR /app
+WORKDIR /app
 COPY . /app/
 
 CMD ["python", "app.py"]
