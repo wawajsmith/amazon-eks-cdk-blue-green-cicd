@@ -73,7 +73,7 @@ pipeline {
           isDeployed=$(kubectl get deploy -n flask-alb -o json | jq \'.items[0]\')
           deploy8080=$(kubectl get svc -n flask-alb -o wide | grep 8080: | tr \' \' \'\\n\' | grep app= | sed \'s/app=//g\')
 
-          if [[ \\"$isDeployed\\" == \\"null\\" ]]; then kubectl apply -f k8s/flaskALBBlue.yaml && kubectl apply -f k8s/flaskALBGreen.yaml; else kubectl set image deployment/$deploy8080 -n flask-alb flask=$ECR_REPO_URI:$TAG; fi
+          if [[ \"$isDeployed\" == \"null\" ]]; then kubectl apply -f k8s/flaskALBBlue.yaml && kubectl apply -f k8s/flaskALBGreen.yaml; else kubectl set image deployment/$deploy8080 -n flask-alb flask=$ECR_REPO_URI:$TAG; fi
 
           kubectl get deploy -n flask-alb
           kubectl get svc -n flask-alb
