@@ -20,7 +20,9 @@ pipeline {
           export CLUSTER_NAME=$kubeClusterName
           export ECR_REPO_URI=$ECR_REPO_URI
           CODEBUILD_RESOLVED_SOURCE_VERSION=01234abcdefghi
-          CODEBUILD_RESOLVED_SOURCE_VERSION=$(git rev-parse HEAD)
+          printenv
+          echo $GIT_COMMIT
+          CODEBUILD_RESOLVED_SOURCE_VERSION=${ENV, var="GIT_COMMIT"}
           echo $CODEBUILD_RESOLVED_SOURCE_VERSION
           export TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}
 
