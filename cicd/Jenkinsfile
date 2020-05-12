@@ -5,9 +5,10 @@ pipeline {
   stages {
     stage('Pre-Build Stage') {
       steps {
-        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: '883d5468-0de9-48c7-8559-b73a1ab77d6b', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: '50ad1826-76ee-477c-92ae-a6cb9bcc624d', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
           sh '''
           echo "Setting Environment Variables Stage"
+          echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY
           export AWS_REGION=${JENKINS_AWS_REGION}
           aws configure set region ${AWS_REGION}
           export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
@@ -34,7 +35,7 @@ pipeline {
 
     stage ('Build & Containerize Stage') {
       steps {
-        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: '883d5468-0de9-48c7-8559-b73a1ab77d6b', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: '50ad1826-76ee-477c-92ae-a6cb9bcc624d', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
           sh label: '', script: '''echo "==================="
           echo "Build Stage"
           echo "==================="
@@ -60,7 +61,7 @@ pipeline {
 
     stage ('Deploy to Green Env Stage') {
       steps {
-        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: '883d5468-0de9-48c7-8559-b73a1ab77d6b', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: '50ad1826-76ee-477c-92ae-a6cb9bcc624d', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
           sh label: '', script: '''echo "==================="
           echo "Post-Build Stage"
           echo "==================="
@@ -89,7 +90,7 @@ pipeline {
         message "Do you want to proceed for production deployment?"
       }
       steps {
-        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: '883d5468-0de9-48c7-8559-b73a1ab77d6b', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: '50ad1826-76ee-477c-92ae-a6cb9bcc624d', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
           sh label: '', script: '''echo "==================="
           echo "Swap Stage"
           echo "==================="
